@@ -1,12 +1,13 @@
 // screens/PlannerScreen.js
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import TaskForm from './TaskForm';
 import TaskItem from './TaskItem';
+import { TasksContext } from '../App';
 
 export default function PlannerScreen() {
-  const [tasks, setTasks] = useState([]);
+  const { tasks, setTasks } = useContext(TasksContext);
   const [showForm, setShowForm] = useState(false);
 
   const addTask = (newTask) => {
