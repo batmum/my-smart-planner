@@ -1,0 +1,4 @@
+npm install --global eas-cli
+npx create-expo-app smartplanner
+cd smartplanner
+eas init --id c3abe56e-25b5-4d75-a251-bab909d03db0
