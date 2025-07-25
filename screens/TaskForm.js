@@ -1,12 +1,19 @@
 // screens/TaskForm.js
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, Button, Modal,
-  StyleSheet, ScrollView, Alert
+  View,
+  Text,
+  TextInput,
+  Button,
+  Modal,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Switch
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-const presetTimes = ['15m','30m','1h','2h'];
+const presetTimes = ['15m', '30m', '1h', '2h'];
 const defaultCategories = ['🏡 Home','💼 Work','🧒 Kids','🩺 Health','🧹 Chores','💰 Finance'];
 
 export default function TaskForm({ onClose, onSave }) {
@@ -15,28 +22,40 @@ export default function TaskForm({ onClose, onSave }) {
   const [category, setCategory] = useState(defaultCategories[0]);
   const [assigned, setAssigned] = useState('Meili');
   const [subtasks, setSubtasks] = useState([]);
+  const [selectedSubtasks, setSelectedSubtasks] = useState({});
   const [newCategory, setNewCategory] = useState('');
 
   const suggestSubtasks = () => {
     // placeholder for GPT call
     const suggestions = ['Subtask 1', 'Subtask 2', 'Subtask 3'];
     setSubtasks(suggestions);
-  };
-
-  const handleSave = () => {
-    if (!title) {
-      Alert.alert('Title is required');
-      return;
-    }
-    onSave({ title, duration, category, assigned, subtasks });
+    setSelectedSubtasks({});
   };
 
   const handleDurationWarning = (val) => {
     setDuration(val);
     const num = parseFloat(val);
     if (num > 3) {
-      Alert.alert('Heads up', 'This duration seems long. Consider breaking it up or increasing time.');
+      Alert.alert(
+        'Heads up',
+        'This duration seems long. Consider breaking it up or increasing time.'
+      );
     }
+  };
+
+  const handleSave = () => {
+    if (!title.trim()) {
+      Alert.alert('Title is required');
+      return;
+    }
+    const chosen = subtasks.filter(st => selectedSubtasks[st]);
+    onSave({
+      title: title.trim(),
+      duration,
+      category,
+      assigned,
+      subtasks: chosen
+    });
   };
 
   return (
@@ -54,7 +73,15 @@ export default function TaskForm({ onClose, onSave }) {
 
           <Button title="Suggest Subtasks" onPress={suggestSubtasks} />
           {subtasks.map((st, i) => (
-            <Text key={i}>• {st}</Text>
+            <View key={i} style={styles.subtaskRow}>
+              <Switch
+                value={!!selectedSubtasks[st]}
+                onValueChange={() =>
+                  setSelectedSubtasks(prev => ({ ...prev, [st]: !prev[st] }))
+                }
+              />
+              <Text style={styles.subtaskText}>{st}</Text>
+            </View>
           ))}
 
           <Text style={{ marginTop: 10 }}>Duration</Text>
@@ -108,11 +135,48 @@ export default function TaskForm({ onClose, onSave }) {
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  form: { margin: 20, backgroundColor: 'white', padding: 20, borderRadius: 8 },
-  heading: { fontSize: 18, marginBottom: 12, fontWeight: 'bold' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 4, padding: 8, marginVertical: 10 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  timeRow: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10 },
-  picker: { height: 50, width: '100%' }
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  form: {
+    margin: 20,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8
+  },
+  heading: {
+    fontSize: 18,
+    marginBottom: 12,
+    fontWeight: 'bold'
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    padding: 8,
+    marginVertical: 10
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20
+  },
+  timeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10
+  },
+  picker: {
+    height: 50,
+    width: '100%'
+  },
+  subtaskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4
+  },
+  subtaskText: {
+    marginLeft: 8
+  }
 });
